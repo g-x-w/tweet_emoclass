@@ -6,7 +6,7 @@ import csv as csv
 import time as tt
 
 client = tp.Client(
-    # secret
+    # API Keys here
 )
 
 test_path = "D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/120321-V11/tweetid_userid_keyword_sentiments_emotions_Argentina.csv/tweetid_userid_keyword_sentiments_emotions_Argentina.csv"
@@ -38,13 +38,12 @@ if __name__ == "__main__":
         writer = csv.writer(csvfile)
         writer.writerow(output_header)
 
-    while (tweet_ct < 100000):
-        print('Getting tweets {} to {}'.format(tweet_ct, tweet_ct+300))
-        df_main = csv_to_df(test_path, tweet_ct+1, num_rows=300, read_column_list=col_list)
-        tweets = get_tweets(df_main)
-        id_list = returned_ids(tweets)
+        while (tweet_ct < 100000):
+            print('Getting tweets {} to {}'.format(tweet_ct, tweet_ct+300))
+            df_main = csv_to_df(test_path, tweet_ct+1, num_rows=100, read_column_list=col_list)
+            tweets = get_tweets(df_main)
+            id_list = returned_ids(tweets)
 
-        with open("df_out1.csv", "a", newline='', encoding='utf-8') as csvfile:
             for i in range(len(id_list)):
                 writer.writerow([str(id_list[i]), tweets.data[i].text, 
                 df_main.loc[df_main['tweet_id'] == id_list[i]].fear_intensity.item(), 
@@ -53,6 +52,6 @@ if __name__ == "__main__":
                 df_main.loc[df_main['tweet_id'] == id_list[i]].sadness_intensity.item(),
                 df_main.loc[df_main['tweet_id'] == id_list[i]].emotion.item()])
         
-        tweet_ct += 300
-        print('\tSleeping for 5.5 min')
-        tt.sleep(330)
+            tweet_ct += 100
+            print('\tSleeping for 105sec')
+            tt.sleep(105)
