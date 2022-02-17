@@ -1,19 +1,19 @@
-from http import client
-from matplotlib.style import use
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import TweedieRegressor
+from pyparsing import delimited_list
 import tweepy as tp
+import csv as csv
+import time as tt
 
 client = tp.Client(
-    #secrets
+    # secret
 )
 
 test_path = "D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/120321-V11/tweetid_userid_keyword_sentiments_emotions_Argentina.csv/tweetid_userid_keyword_sentiments_emotions_Argentina.csv"
 
 def csv_to_df(csv_filename, start_row, num_rows, read_column_list):
     df = pd.read_csv(csv_filename, skiprows=range(1, start_row), nrows=num_rows, usecols=read_column_list)
-    df = pd.read_csv(csv_filename, usecols=read_column_list)
+    df = df.drop_duplicates(subset='tweet_id')
     return (df)
 
 def get_tweets(df_in):
@@ -23,13 +23,36 @@ def get_tweets(df_in):
     tweets = client.get_tweets(ids=id_list, user_auth=True)
     return (tweets)
 
-
-
+def returned_ids(tweet_data):
+    ret = []
+    for i in range(len(tweet_data.data)):
+        ret.append(tweet_data.data[i].id)
+    return  (ret)
 
 if __name__ == "__main__":
     col_list = ['tweet_id', 'fear_intensity', 'anger_intensity', 'happiness_intensity', 'sadness_intensity', 'emotion']
-    df1 = csv_to_df(test_path, 100, num_rows=10, read_column_list=col_list)
-    tweets = get_tweets(df1)
+    output_header = ['tweet_id', 'tweet_text', 'fear_intensity', 'anger_intensity', 'happiness_intensity', 'sadness_intensity', 'emotion']
+    tweet_ct = 0
 
-    for i in range(len(tweets.data)):
-        print(tweets.data[i].id)
+    with open("df_out1.csv", "w", newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(output_header)
+
+    while (tweet_ct < 100000):
+        print('Getting tweets {} to {}'.format(tweet_ct, tweet_ct+300))
+        df_main = csv_to_df(test_path, tweet_ct+1, num_rows=300, read_column_list=col_list)
+        tweets = get_tweets(df_main)
+        id_list = returned_ids(tweets)
+
+        with open("df_out1.csv", "a", newline='', encoding='utf-8') as csvfile:
+            for i in range(len(id_list)):
+                writer.writerow([str(id_list[i]), tweets.data[i].text, 
+                df_main.loc[df_main['tweet_id'] == id_list[i]].fear_intensity.item(), 
+                df_main.loc[df_main['tweet_id'] == id_list[i]].anger_intensity.item(), 
+                df_main.loc[df_main['tweet_id'] == id_list[i]].happiness_intensity.item(), 
+                df_main.loc[df_main['tweet_id'] == id_list[i]].sadness_intensity.item(),
+                df_main.loc[df_main['tweet_id'] == id_list[i]].emotion.item()])
+        
+        tweet_ct += 300
+        print('\tSleeping for 5.5 min')
+        tt.sleep(330)
