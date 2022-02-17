@@ -39,7 +39,7 @@ if __name__ == "__main__":
         writer.writerow(output_header)
 
         while (tweet_ct < 100000):
-            print('Getting tweets {} to {}'.format(tweet_ct, tweet_ct+300))
+            print('Getting tweets {} to {}'.format(tweet_ct, tweet_ct+100))
             df_main = csv_to_df(test_path, tweet_ct+1, num_rows=100, read_column_list=col_list)
             tweets = get_tweets(df_main)
             id_list = returned_ids(tweets)
