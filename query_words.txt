@@ -1,0 +1,5 @@
+Anger: [mad, annoyed, pissed, idiotic, stupid, frustrat*]
+Happy: [excited, awesome, fantastic, amazing, great, lovely]
+Sad: [depressed, disappointed, sad, miserable, hopeless, unhappy]
+Fear: [scared, freaky, terrifying, shocking, horrific, panic]
+Null(?):
