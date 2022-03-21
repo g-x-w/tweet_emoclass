@@ -23,12 +23,18 @@ def tweet_vectorize(tweet_label_in, glove_embeds):
 
     for i in range(len(tweet_list)):
         curr_tweet = []
-        while len(tweet_list[i]) > 0:
+        while len(tweet_list[i]) > 0 and len(curr_tweet) < 50:
             curr_word = tweet_list[i].pop(0)
             if curr_word in glove_embeds:
                 curr_tweet.append(glove_embeds[curr_word])
             else:
                 curr_tweet.append(np.zeros(50))     # dimensionality of embedding vector
+        if len(curr_tweet) < 50:
+            while len(curr_tweet) < 50:
+                curr_tweet.append(np.zeros(50))
+        else:
+            print('Full length tweet, no zero-padding applied')
+
         curr_tweet = np.asarray(curr_tweet)
         out_vectors.append(curr_tweet)
     
@@ -38,7 +44,7 @@ def tweet_vectorize(tweet_label_in, glove_embeds):
 if __name__ == "__main__":
     small_embeds = load_pretrained_embeddings("D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/glove.6B/glove.6B.50d.txt")
     
-    test = ([['hello', 'my', 'name', 'is', 'disaster', 'truck'], ['Fred','I','fucking','hate','you'], ['batman','went','to','new','fork','city']], [[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
+    test = ([['hello', 'my', 'name', 'is', 'disaster', 'truck'], ['Fred','I','fucking','hate','you'], ['batman','went','to','new','fork','city', 'spider', 'man', 'went', 'to', 'umpire', 'city', 'some', 'body', 'once', 'told', 'me', 'the', 'world', 'was', 'gonna', 'roll', 'me', 'I', "ain't", 'the', 'sharpest', 'tool', 'in', 'the', 'shed', 'she', 'was', 'looking', 'kinda', 'dumb', 'with', 'her', 'finger', 'and', 'her', 'thumb', 'in', 'the', 'shape', 'of', 'an', 'L', 'on', 'her', 'forehead', 'some', 'body', 'once', 'told', 'me', 'the', 'world', 'was', 'gonna', 'roll', 'me', 'I', "ain't", 'the', 'sharpest', 'tool', 'in', 'the', 'shed', 'she', 'was', 'looking', 'kinda', 'dumb', 'with', 'her', 'finger', 'and', 'her', 'thumb', 'in', 'the', 'shape', 'of', 'an', 'L', 'on', 'her', 'forehead']], [[0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
 
     test_out = tweet_vectorize(test, small_embeds)
-    print(test_out)
+    # print(test_out)
