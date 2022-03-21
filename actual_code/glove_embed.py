@@ -2,9 +2,17 @@ from lib2to3.pgen2 import token
 import numpy as np
 import csv
 import keras
+from sklearn.utils import shuffle 
+# import torch
 import time as tt
 
+np.random.seed(1)
+
 # def runtime(starttime):
+
+def unison_shuffle(a, b):
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
 
 def load_pretrained_embeddings(filepath):
     print("Loading in pretrained GloVe embeddings from: {}".format(filepath))
@@ -91,22 +99,38 @@ def tweet_vectorize(tweet_label_in, glove_embeds):
         # else:
         #     print('Full length tweet, no zero-padding applied')
 
-        curr_tweet = np.asarray(curr_tweet)
+        # curr_tweet = np.asarray(curr_tweet)
         out_vectors.append(curr_tweet)
     
     return (out_vectors, label_list)
 
+def split_train_val_test(input, labels, man_input, man_lab):
+
+  input_shuff, labels_shuff = shuffle(input, labels)
+
+  training_proportion = 0.8
+  validation_proportion = 0.1
+  num_train = int(len(input_shuff) * training_proportion)
+  num_val = int(len(input_shuff) * validation_proportion)
+
+  input_train, input_valid, input_test = input_shuff[:num_train], input_shuff[num_train:num_train+num_val], input_shuff[num_train+num_val:]
+  label_train, label_valid, label_test = labels_shuff[:num_train], labels_shuff[num_train:num_train+num_val], labels_shuff[num_train+num_val:]
+
+  input_test += man_input
+  label_test += man_lab
+
+  return input_train, input_valid, input_test, label_train, label_valid, label_test
 
 if __name__ == "__main__":
     small_embeds = load_pretrained_embeddings("D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/glove.6B/glove.6B.50d.txt")
+    
     training_set = [[], []]
-
-    # for i in range(1, 6):
-    #     train_tokens = tokenize_csv("D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/tweet_emotion/tweets_labels/data{}.csv".format(str(i)))
-    #     temp_vec = tweet_vectorize(train_tokens, small_embeds)
-    #     training_set[0] = training_set[0] + temp_vec[0]
-    #     training_set[1] = training_set[1] + temp_vec[1]
-    #     print('Finished vectorizing csv number {}'.format(str(i)), "Dataset size: ", len(training_set[0]), len(training_set[1]))
+    for i in range(1, 2):
+        train_tokens = tokenize_csv("D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/tweet_emotion/tweets_labels/data{}.csv".format(str(i)))
+        temp_vec = tweet_vectorize(train_tokens, small_embeds)
+        training_set[0] = training_set[0] + temp_vec[0]
+        training_set[1] = training_set[1] + temp_vec[1]
+        print('Finished vectorizing csv number {}'.format(str(i)), "Dataset size: ", len(training_set[0]), len(training_set[1]))
 
     manual_names = ['anger', 'fear', 'happy', 'sad']
     manual_labels = [[1,0,0,0,0], [0,1,0,0,0], [0,0,0,1,0], [0,0,0,0,1]]
@@ -117,5 +141,7 @@ if __name__ == "__main__":
         temp_vec = tweet_vectorize(manual_tokens, small_embeds)
         manual_set[0] = manual_set[0] + temp_vec[0]
         manual_set[1] = manual_set[1] + temp_vec[1]
+
+    x_train, x_valid, x_test, y_train, y_valid, y_test = split_train_val_test(training_set[0], training_set[1], manual_set[0], manual_set[1])
     
-    print(manual_set)
+    print(len(x_train), len(y_train), len(x_valid), len(y_valid), len(x_test), len(y_test))
