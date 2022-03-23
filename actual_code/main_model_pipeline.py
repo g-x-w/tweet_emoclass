@@ -1,4 +1,7 @@
+import torch
+import torch.nn as nn
 from lib2to3.pgen2 import token
+from tracemalloc import start
 import numpy as np
 import csv
 import keras
@@ -8,7 +11,9 @@ import time as tt
 
 np.random.seed(1)
 
-# def runtime(starttime):
+def runtime(starttime):
+    print("Runtime: {}".format(tt.time() - starttime))
+    return 0
 
 def unison_shuffle(a, b):
     p = np.random.permutation(len(a))
@@ -96,10 +101,6 @@ def tweet_vectorize(tweet_label_in, glove_embeds):
         if len(curr_tweet) < 50:
             while len(curr_tweet) < 50:
                 curr_tweet.append(np.zeros(50))
-        # else:
-        #     print('Full length tweet, no zero-padding applied')
-
-        # curr_tweet = np.asarray(curr_tweet)
         out_vectors.append(curr_tweet)
     
     return (out_vectors, label_list)
@@ -121,7 +122,41 @@ def split_train_val_test(input, labels, man_input, man_lab):
 
   return input_train, input_valid, input_test, label_train, label_valid, label_test
 
+def convert_to_tensors(input_train, input_valid, input_test, label_train, label_valid, label_test):
+  input_train = torch.as_tensor(input_train)
+  input_valid = torch.as_tensor(input_valid)
+  input_test = torch.as_tensor(input_test)
+  label_train = torch.as_tensor(label_train)
+  label_valid = torch.as_tensor(label_valid)
+  label_test = torch.as_tensor(label_test)
+
+  return input_train, input_valid, input_test, input_train, input_valid, label_test
+
+# Model Definition
+class model(nn.Module):
+  def __init__(self):
+    super(model, self).__init__()
+
+    self.convolution_layer = nn.Conv2d(out_channels=32, in_channels=1, kernel_size=(5, 5), stride=1)
+
+  def forward(self, x):
+    x = self.convolution_layer(x)
+    x = nn.functional.relu(x)
+    x = nn.functional.max_pool2d(x)
+
+# training loop
+def training_loop(model_instance, loss, optimizer, epochs, batch_size, x_train, y_train):
+  for epoch in range(epochs):
+    prediction = model_instance(x_train)
+    loss_value = loss(prediction, y_train)
+    loss_value.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+    # for batch in range(0, len(x_train), batch_size):
+    #   current_batch = 
+
 if __name__ == "__main__":
+    runstart = tt.time()
     small_embeds = load_pretrained_embeddings("D:/OneDrive - University of Toronto/School/NSCI Y3/WINTER/ECE324/glove.6B/glove.6B.50d.txt")
     
     training_set = [[], []]
@@ -143,5 +178,12 @@ if __name__ == "__main__":
         manual_set[1] = manual_set[1] + temp_vec[1]
 
     x_train, x_valid, x_test, y_train, y_valid, y_test = split_train_val_test(training_set[0], training_set[1], manual_set[0], manual_set[1])
+    x_train, x_valid, x_test, y_train, y_valid, y_test = convert_to_tensors(x_train, x_valid, x_test, y_train, y_valid, y_test)
+
+    model_instance = model()
+    loss = nn.BCELoss()         # need a loss function
+    optimizer = torch.optim.Adam(model_instance.parameters(), lr=0.01)      # need an optimizer
+
+    training_loop(model_instance, loss, optimizer, 10, 30, x_train, y_train)
     
-    print(len(x_train), len(y_train), len(x_valid), len(y_valid), len(x_test), len(y_test))
+    runtime(runstart)
