@@ -137,7 +137,7 @@ class model(nn.Module):
   def __init__(self):
     super(model, self).__init__()
 
-    self.convolution_layer = nn.Conv2d(out_channels=32, in_channels=1, kernel_size=(5, 5), stride=1)
+    self.convolution_layer = nn.Conv1d(out_channels=1, in_channels=1, kernel_size=5, stride=1)
 
   def forward(self, x):
     x = self.convolution_layer(x)
